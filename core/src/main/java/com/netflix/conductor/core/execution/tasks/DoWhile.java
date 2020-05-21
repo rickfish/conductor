@@ -18,27 +18,28 @@
  */
 package com.netflix.conductor.core.execution.tasks;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.script.ScriptException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.conductor.common.metadata.tasks.Task;
 import com.netflix.conductor.common.metadata.tasks.Task.Status;
 import com.netflix.conductor.common.metadata.tasks.TaskDef;
-import com.netflix.conductor.common.metadata.workflow.WorkflowTask;
 import com.netflix.conductor.common.run.Workflow;
 import com.netflix.conductor.common.utils.TaskUtils;
 import com.netflix.conductor.core.events.ScriptEvaluator;
 import com.netflix.conductor.core.execution.ParametersUtils;
 import com.netflix.conductor.core.execution.TerminateWorkflowException;
 import com.netflix.conductor.core.execution.WorkflowExecutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.script.ScriptException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Manan
@@ -67,14 +68,14 @@ public class DoWhile extends WorkflowSystemTask {
 		boolean allDone = true;
 		boolean hasFailures = false;
 		StringBuilder failureReason = new StringBuilder();
-		Map<String, Object> output = new HashMap<>();
+		Map<String, Object> output = new LinkedHashMap<>();
 		task.getOutputData().put("iteration", task.getIteration());
 
 		/*
 		 * Get the latest set of tasks (the ones that have the highest retry count). We don't want to evaluate any tasks
 		 * that have already failed if there is a more current one (a later retry count).
 		 */
-		Map<String, Task> relevantTasks = new HashMap<String, Task>();
+		Map<String, Task> relevantTasks = new LinkedHashMap<String, Task>();
 		Task relevantTask = null;
 		for(Task t : workflow.getTasks()) {
 			if(task.getWorkflowTask().has(TaskUtils.removeIterationFromTaskRefName(t.getReferenceTaskName())) 
